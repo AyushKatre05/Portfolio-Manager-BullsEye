@@ -572,31 +572,6 @@ export default function Home() {
             )}
           </div>
         )}
-
-        {/* Footer */}
-        <div className="mt-12 text-center">
-          <div className="bg-white/50 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-            <div className="flex items-center justify-center space-x-6 mb-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">🇮🇳</span>
-                <span className="text-lg font-semibold text-gray-700">Indian Stock Market</span>
-              </div>
-              <div className="w-1 h-6 bg-gray-300 rounded-full"></div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl">🏛️🏢</span>
-                <span className="text-lg font-semibold text-gray-700">NSE & BSE</span>
-              </div>
-              <div className="w-1 h-6 bg-gray-300 rounded-full"></div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl">🤖</span>
-                <span className="text-lg font-semibold text-gray-700">AI-Powered</span>
-              </div>
-            </div>
-            <p className="text-gray-600">
-              Advanced machine learning predictions with 95% accuracy • Built with Next.js & TensorFlow.js
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
