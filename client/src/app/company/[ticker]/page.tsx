@@ -23,48 +23,52 @@ export default function CompanyPage() {
 
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!ticker) return;
 
     fetch(`http://localhost:8080/api/company/${ticker}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Backend error: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         setCompany(data.company);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Fetch failed:", err);
+        setError("Unable to load company data");
         setLoading(false);
       });
   }, [ticker]);
 
   if (loading) return <p className="p-6">Loading company info...</p>;
+  if (error) return <p className="p-6 text-red-600">{error}</p>;
   if (!company) return <p className="p-6">No data found</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-emerald-50 p-6">
-      <div className="mx-auto max-w-4xl space-y-6">
+    <div className="min-h-screen bg-slate-100 p-6">
+      <div className="mx-auto max-w-4xl rounded-xl bg-white p-6 shadow">
 
-        {/* Header */}
-        <div className="rounded-2xl bg-slate-900 p-6 text-white shadow-lg">
-          <h1 className="text-3xl font-bold">{company.name}</h1>
-          <p className="text-slate-300">{company.symbol}</p>
-        </div>
+        <h1 className="text-3xl font-bold text-slate-800">
+          {company.name}
+          <span className="ml-2 text-slate-500">({company.symbol})</span>
+        </h1>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Stat label="Sector" value={company.sector} />
-          <Stat label="Industry" value={company.industry} />
-          <Stat label="Market Cap" value={company.marketCap} />
-          <Stat label="P/E Ratio" value={company.peRatio} />
-          <Stat label="Dividend Yield" value={company.dividendYield || "N/A"} />
-        </div>
+        <p className="mt-4 text-slate-600 leading-relaxed">
+          {company.description}
+        </p>
 
-        {/* Description */}
-        <div className="rounded-xl bg-white p-6 shadow-md">
-          <h2 className="mb-2 text-lg font-semibold text-slate-700">
-            About the Company
-          </h2>
-          <p className="text-slate-600 leading-relaxed">
-            {company.description}
-          </p>
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Info label="Sector" value={company.sector} />
+          <Info label="Industry" value={company.industry} />
+          <Info label="Market Cap" value={company.marketCap} />
+          <Info label="P/E Ratio" value={company.peRatio} />
+          <Info label="Dividend Yield" value={company.dividendYield} />
         </div>
 
       </div>
@@ -72,13 +76,11 @@ export default function CompanyPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white p-4 shadow">
+    <div className="rounded-lg bg-slate-50 p-4">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-slate-800">
-        {value}
-      </p>
+      <p className="text-lg font-semibold text-slate-800">{value || "-"}</p>
     </div>
   );
 }
