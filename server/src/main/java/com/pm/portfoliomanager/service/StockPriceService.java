@@ -14,7 +14,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class StockPriceService {
 
-    private static final String API_KEY = "YOUR_ALPHA_VANTAGE_KEY";
+    private static final String API_KEY = "HBKBEQDGEQLI2B4O";
     private final WebClient webClient;
 
     public Mono<List<PricePoint>> getDailyPrices(String ticker) {
@@ -28,11 +28,19 @@ public class StockPriceService {
                 .uri(url)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
                     Map<String, Map<String, String>> series =
                             (Map<String, Map<String, String>>) response.get("Time Series (Daily)");
 
-                    return series.entrySet()
+                    // Check for null or empty series
+                    if (series == null || series.isEmpty()) {
+                        return Mono.error(new RuntimeException(
+                                "No stock price data found for ticker '" + ticker + "'. " +
+                                        "This may happen if the ticker is invalid or API limit is reached."
+                        ));
+                    }
+
+                    List<PricePoint> prices = series.entrySet()
                             .stream()
                             .map(e -> new PricePoint(
                                     e.getKey(),
@@ -40,6 +48,8 @@ public class StockPriceService {
                             ))
                             .sorted(Comparator.comparing(PricePoint::getDate))
                             .toList();
+
+                    return Mono.just(prices);
                 });
     }
 }
