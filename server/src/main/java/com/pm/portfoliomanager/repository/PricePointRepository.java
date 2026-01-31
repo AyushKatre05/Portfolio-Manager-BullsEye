@@ -4,7 +4,9 @@ import com.pm.portfoliomanager.model.PricePoint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PricePointRepository extends JpaRepository<PricePoint, Long> {
-    // you can add custom queries if needed
+    List<PricePoint> findByTicker(String ticker);
 }

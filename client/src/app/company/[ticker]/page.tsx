@@ -6,20 +6,17 @@ import { useParams } from "next/navigation";
 interface Company {
   symbol: string;
   name: string;
-  sector: string;
-  industry: string;
-  marketCap: string;
-  peRatio: string;
-  dividendYield: string;
-  description: string;
+  sector?: string | null;
+  industry?: string | null;
+  market_cap?: string | null;
+  pe_ratio?: string | null;
+  dividend_yield?: string | null;
+  description?: string | null;
 }
 
 export default function CompanyPage() {
   const params = useParams();
-  const ticker =
-    typeof params?.ticker === "string"
-      ? params.ticker.toUpperCase()
-      : "";
+  const ticker = typeof params?.ticker === "string" ? params.ticker.toUpperCase() : "";
 
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,13 +27,11 @@ export default function CompanyPage() {
 
     fetch(`http://localhost:8080/api/company/${ticker}`)
       .then(res => {
-        if (!res.ok) {
-          throw new Error(`Backend error: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Backend error: ${res.status}`);
         return res.json();
       })
       .then(data => {
-        setCompany(data.company);
+        setCompany(data); // ← use data directly, not data.company
         setLoading(false);
       })
       .catch(err => {
@@ -50,6 +45,15 @@ export default function CompanyPage() {
   if (error) return <p className="p-6 text-red-600">{error}</p>;
   if (!company) return <p className="p-6">No data found</p>;
 
+  // Only render fields that exist and are not "-"
+  const infoFields: { label: string; value?: string | null }[] = [
+    { label: "Sector", value: company.sector },
+    { label: "Industry", value: company.industry },
+    { label: "Market Cap", value: company.market_cap },
+    { label: "P/E Ratio", value: company.pe_ratio },
+    { label: "Dividend Yield", value: company.dividend_yield },
+  ].filter(f => f.value && f.value !== "-");
+
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-4xl rounded-xl bg-white p-6 shadow">
@@ -59,17 +63,17 @@ export default function CompanyPage() {
           <span className="ml-2 text-slate-500">({company.symbol})</span>
         </h1>
 
-        <p className="mt-4 text-slate-600 leading-relaxed">
-          {company.description}
-        </p>
+        {company.description && company.description !== "-" && (
+          <p className="mt-4 text-slate-600 leading-relaxed">{company.description}</p>
+        )}
 
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Info label="Sector" value={company.sector} />
-          <Info label="Industry" value={company.industry} />
-          <Info label="Market Cap" value={company.marketCap} />
-          <Info label="P/E Ratio" value={company.peRatio} />
-          <Info label="Dividend Yield" value={company.dividendYield} />
-        </div>
+        {infoFields.length > 0 && (
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {infoFields.map(f => (
+              <Info key={f.label} label={f.label} value={f.value!} />
+            ))}
+          </div>
+        )}
 
       </div>
     </div>
@@ -80,7 +84,7 @@ function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-slate-50 p-4">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="text-lg font-semibold text-slate-800">{value || "-"}</p>
+      <p className="text-lg font-semibold text-slate-800">{value}</p>
     </div>
   );
 }

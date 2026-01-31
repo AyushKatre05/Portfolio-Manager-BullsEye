@@ -1,55 +1,58 @@
 package com.pm.portfoliomanager.service;
 
 import com.pm.portfoliomanager.model.PricePoint;
+import com.pm.portfoliomanager.repository.PricePointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class StockPriceService {
 
-    private static final String API_KEY = "HBKBEQDGEQLI2B4O";
-    private final WebClient webClient;
+    private final PricePointRepository pricePointRepository;
+    private final FinnhubService finnhubService;
+    private final PolygonService polygonService;
+
+    // Cache to prevent multiple calls at the same time
+    private final ConcurrentHashMap<String, Mono<List<PricePoint>>> cache = new ConcurrentHashMap<>();
 
     public Mono<List<PricePoint>> getDailyPrices(String ticker) {
+        ticker = ticker.toUpperCase();
 
-        String url = "https://www.alphavantage.co/query"
-                + "?function=TIME_SERIES_DAILY"
-                + "&symbol=" + ticker
-                + "&apikey=" + API_KEY;
+        return cache.computeIfAbsent(ticker, t ->
+                fetchAndSaveIfAbsent(t)
+                        .doFinally(signal -> cache.remove(t)) // remove from cache after execution
+                        .cache() // cache result for multiple subscribers
+        );
+    }
 
-        return webClient.get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .flatMap(response -> {
-                    Map<String, Map<String, String>> series =
-                            (Map<String, Map<String, String>>) response.get("Time Series (Daily)");
+    @Transactional
+    protected Mono<List<PricePoint>> fetchAndSaveIfAbsent(String ticker) {
+        // First, check if DB already has prices
+        List<PricePoint> existing = pricePointRepository.findByTicker(ticker);
+        if (!existing.isEmpty()) {
+            return Mono.just(existing);
+        }
 
-                    // Check for null or empty series
-                    if (series == null || series.isEmpty()) {
-                        return Mono.error(new RuntimeException(
-                                "No stock price data found for ticker '" + ticker + "'. " +
-                                        "This may happen if the ticker is invalid or API limit is reached."
-                        ));
+        // Fetch from Finnhub, fallback to Polygon
+        return finnhubService.getDailyHistory(ticker)
+                .onErrorResume(e -> polygonService.getDailyHistory(ticker))
+                .flatMap(resp -> {
+                    List<PricePoint> prices = resp.getPrices();
+
+                    if (prices == null || prices.isEmpty()) {
+                        return Mono.just(List.<PricePoint>of());
                     }
 
-                    List<PricePoint> prices = series.entrySet()
-                            .stream()
-                            .map(e -> new PricePoint(
-                                    e.getKey(),
-                                    Double.parseDouble(e.getValue().get("4. close"))
-                            ))
-                            .sorted(Comparator.comparing(PricePoint::getDate))
-                            .toList();
+                    prices.forEach(p -> p.setTicker(ticker));
 
-                    return Mono.just(prices);
+                    // Only save once transactionally
+                    return Mono.fromCallable(() -> pricePointRepository.saveAll(prices));
                 });
     }
 }

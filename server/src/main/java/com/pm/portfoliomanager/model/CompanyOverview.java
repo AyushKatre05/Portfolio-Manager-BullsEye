@@ -1,25 +1,28 @@
 package com.pm.portfoliomanager.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
+@Table(name = "company_overview")
 public class CompanyOverview {
 
     @Id
-    private String symbol; // primary key
+    private String symbol;
 
+    @Column(length = 1000)
     private String name;
+
+    @Column(length = 255)
     private String sector;
+
+    @Column(length = 255)
     private String industry;
+
+    @Column(length = 255)
     private String marketCap;
-    private String peRatio;
-    private String dividendYield;
+
+    @Lob
     private String description;
 }
