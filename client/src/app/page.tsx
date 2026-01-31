@@ -10,7 +10,7 @@ import {
   getPredictionsForData
 } from '@/lib/ml-utils';
 import type { StockData, PredictionResult } from '@/types/type';
-import { enhancedPredictStock } from './functions/EnhancePredictStock';
+import { enhancedPredictStock } from './(functions)/EnhancePredictStock';
 
 export default function Home() {
   const [stockSymbol, setStockSymbol] = useState('');
