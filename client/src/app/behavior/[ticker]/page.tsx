@@ -5,10 +5,10 @@ import { useParams } from "next/navigation";
 
 interface BehaviorResponse {
   ticker: string;
-  volatility_type: string;
-  trend_nature: string;
+  volatilityType: string;
+  trendNature: string;
   suitability: string;
-  confidence_score: number;
+  confidenceScore: number;
 }
 
 export default function StockBehaviorPage() {
@@ -44,7 +44,7 @@ export default function StockBehaviorPage() {
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!data) return null;
 
-  const confidence = data.confidence_score;
+  const confidence = data.confidenceScore;
   const barWidth = Math.min(100, Math.abs(confidence));
   const barColor = confidence >= 0 ? "bg-green-500" : "bg-red-500";
 
@@ -63,13 +63,13 @@ export default function StockBehaviorPage() {
 
           <Card title="Volatility">
             <span className="text-yellow-400">
-              {data.volatility_type}
+              {data.volatilityType}
             </span>
           </Card>
 
           <Card title="Trend">
             <span className="text-blue-400">
-              {data.trend_nature}
+              {data.trendNature}
             </span>
           </Card>
 
