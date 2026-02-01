@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
-import StockChart from '@/components/StockChart';
-import type { StockData, PredictionResult } from '@/types/type';
+import StockChart from '../../../components/StockChart';
+import type { StockData, PredictionResult } from '../../../types/type';
 import { enhancedPredictStock } from '../../(functions)/EnhancePredictStock';
 
-export default function analysis() {
+export default function Analysis() {
   const [stockSymbol, setStockSymbol] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
