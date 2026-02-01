@@ -71,7 +71,7 @@ const SignUp = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <InputFeild
-          name="full_name"
+          name="fullName"
           label="Full Name"
           placeholder="John Doe"
           register={register}
@@ -110,7 +110,7 @@ const SignUp = () => {
         />
 
         <SelectFields
-          name="investment_goals"
+          name="investmentGoals"
           label="Investment Goals"
           placeholder="Select your investment goals"
           options={INVESTMENT_GOALS}
@@ -120,7 +120,7 @@ const SignUp = () => {
         />
 
         <SelectFields
-          name="risk_tolerance"
+          name="riskTolerance"
           label="Risk Tolerance"
           placeholder="Select your risk tolerance"
           options={RISK_TOLERANCE_OPTIONS}
