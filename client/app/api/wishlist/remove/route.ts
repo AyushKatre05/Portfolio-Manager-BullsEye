@@ -46,7 +46,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Forward request to Spring backend with JWT token
-    const backendUrl = process.env.BACKEND_URL || "http://localhost:8080"
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
     const backendRes = await fetch(
       `${backendUrl}/api/wishlist/remove?userId=${encodeURIComponent(
         userId
