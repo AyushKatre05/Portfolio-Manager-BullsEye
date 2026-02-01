@@ -6,11 +6,11 @@ import {
   CommandEmpty,
   CommandInput,
   CommandList,
-} from "@/components/ui/command"
-import {Button} from "@/components/ui/button"
+} from "../components/ui/command"
+import {Button} from "../components/ui/button"
 import {Loader2, TrendingUp, Star} from "lucide-react"
 import Link from "next/link"
-import {useWatchlist} from "@/hooks/useWatchlist"
+import {useWatchlist} from "../hooks/useWatchlist"
 
 const CACHE_KEY = "popular_stocks_cache"
 const CACHE_EXPIRY_KEY = "popular_stocks_cache_expiry"

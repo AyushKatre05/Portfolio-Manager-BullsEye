@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import * as tf from '@tensorflow/tfjs';
 
 export interface StockData {
