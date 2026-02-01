@@ -1,7 +1,8 @@
 package com.signalist.stock.config;
 
-import com.signalist.stock.security.CustomUserDetailsService;
-import com.signalist.stock.util.JwtUtil;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,8 +19,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.List;
+import com.signalist.stock.security.CustomUserDetailsService;
+import com.signalist.stock.util.JwtUtil;
 
 @Configuration
 @EnableWebSecurity
@@ -46,7 +47,7 @@ public class SpringSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*","https://finnex-olive.vercel.app"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*","https://portfolio-manager-bulls-eye.vercel.app","https://bullseye.ayushkatre.tech"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
