@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Forward credentials to backend auth endpoint
-    const backendUrl = process.env.BACKEND_URL || "http://localhost:8080"
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
 
-    if (!process.env.BACKEND_URL && process.env.NODE_ENV === "production") {
-      console.error("BACKEND_URL not set in production!")
+    if (!process.env.NEXT_PUBLIC_BACKEND_URL && process.env.NODE_ENV === "production") {
+      console.error("NEXT_PUBLIC_BACKEND_URL not set in production!")
       return NextResponse.json(
         {error: "Server configuration error"},
         {status: 500}
