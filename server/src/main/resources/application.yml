@@ -24,6 +24,26 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_STARTTLS_ENABLE:true}
+
+app:
+  mail:
+    from: ayushkatre1801@gmail.com
+    from-name: Bullesye
+
+# ===============================
+# API KEYS
+# ===============================
 finnhub:
   api:
     key: ${FINNHUB_API_KEY}
@@ -39,12 +59,3 @@ jwt:
 gemini:
   apiKey: ${GEMINI_API_KEY}
   model: gemini-2.5-flash
-
-  mail:
-    host: smtp-relay.brevo.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
