@@ -70,5 +70,6 @@ export const config = {
     "/profile/:path*",
     "/settings/:path*",
     "/alerts/:path*",
+    "/stock/:path*",
   ],
 }

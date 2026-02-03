@@ -5,6 +5,7 @@ import {WatchlistProvider} from "@/hooks/useWatchlist"
 import {getUserFromToken} from "@/lib/jwt"
 import {Toaster} from "@/components/Toaster"
 import {ErrorBoundary} from "@/components/ErrorBoundary"
+import { Providers } from "../providers"
 
 const layout = async ({children}: {children: React.ReactNode}) => {
   const cookiesStore = await cookies()
@@ -30,6 +31,7 @@ const layout = async ({children}: {children: React.ReactNode}) => {
   return (
     <ErrorBoundary>
       <WatchlistProvider>
+        <Providers>
         <Toaster />
         <main className="min-h-screen text-gray-400">
           <Header
@@ -45,6 +47,7 @@ const layout = async ({children}: {children: React.ReactNode}) => {
           />
           <div className="container py-10">{children}</div>
         </main>
+        </Providers>
       </WatchlistProvider>
     </ErrorBoundary>
   )
