@@ -1,6 +1,9 @@
-import { ReactNode, memo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { SearchForm } from './SearchForm';
+"use client";
+
+import { ReactNode, memo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation"; // For current path
+import { SearchForm } from "./SearchForm";
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,21 +14,18 @@ interface LayoutProps {
  * Provides consistent header, navigation, and footer across all pages
  */
 export const Layout = memo(function Layout({ children }: LayoutProps) {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
-  const isPortfolioPage = location.pathname === '/portfolio';
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+  const isPortfolioPage = pathname === "/portfolio";
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link 
-              to="/" 
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-            >
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <svg
                   className="w-6 h-6 text-white"
@@ -55,21 +55,17 @@ export const Layout = memo(function Layout({ children }: LayoutProps) {
             {/* Navigation */}
             <nav className="flex items-center gap-2">
               <Link
-                to="/"
+                href="/"
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isHomePage
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700'
+                  isHomePage ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 Dashboard
               </Link>
               <Link
-                to="/portfolio"
+                href="/portfolio"
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isPortfolioPage
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700'
+                  isPortfolioPage ? "bg-emerald-600 text-white" : "text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 Portfolio
@@ -100,7 +96,7 @@ export const Layout = memo(function Layout({ children }: LayoutProps) {
           {/* Signature */}
           <div className="mt-4 pt-4 border-t border-slate-700/30 text-center">
             <p className="text-sm text-slate-400">
-              Created by{' '}
+              Created by{" "}
               <a
                 href="https://serkanbayraktar.com/"
                 target="_blank"
@@ -108,8 +104,8 @@ export const Layout = memo(function Layout({ children }: LayoutProps) {
                 className="text-blue-400 hover:text-blue-300 transition-colors"
               >
                 Serkanby
-              </a>
-              {' | '}
+              </a>{" "}
+              |{" "}
               <a
                 href="https://github.com/Serkanbyx"
                 target="_blank"
