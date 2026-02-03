@@ -5,7 +5,7 @@
 
 export { Layout } from './Layout';
 export { SearchForm } from './SearchForm';
-export { StockChart } from './StockChart';
+export { StockCharts } from './StockCharts';
 export { StockTable } from './StockTable';
 export { StockCard } from './StockCard';
 export { Watchlist } from './Watchlist';

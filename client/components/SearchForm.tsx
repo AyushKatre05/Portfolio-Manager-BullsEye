@@ -1,25 +1,27 @@
-import { useState, useCallback, useRef, useEffect, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { searchStocks, clearSearchResults } from '../store/slices/stockSlice';
-import { searchFormSchema, type SearchFormData } from '../validation/schemas';
+"use client";
+
+import { useState, useCallback, useRef, useEffect, memo } from "react";
+import { useRouter } from "next/navigation"; // Next.js router
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { searchStocks, clearSearchResults } from "../store/slices/stockSlice";
+import { searchFormSchema, type SearchFormData } from "../validation/schemas";
 
 /**
  * Search Form Component
  * Provides stock symbol search with autocomplete suggestions
  */
 export const SearchForm = memo(function SearchForm() {
-  const navigate = useNavigate();
+  const router = useRouter(); // Next.js router
   const dispatch = useAppDispatch();
   const { searchResults, status } = useAppSelector((state) => state.stock);
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const {
     register,
@@ -29,18 +31,14 @@ export const SearchForm = memo(function SearchForm() {
     formState: { errors },
   } = useForm<SearchFormData>({
     resolver: zodResolver(searchFormSchema),
-    defaultValues: {
-      symbol: '',
-    },
+    defaultValues: { symbol: "" },
   });
 
-  const searchValue = watch('symbol');
+  const searchValue = watch("symbol");
 
   // Debounced search
   useEffect(() => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (searchValue && searchValue.length >= 1) {
       debounceRef.current = setTimeout(() => {
@@ -53,9 +51,7 @@ export const SearchForm = memo(function SearchForm() {
     }
 
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [searchValue, dispatch]);
 
@@ -66,31 +62,30 @@ export const SearchForm = memo(function SearchForm() {
         setIsOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Handle form submission
   const onSubmit = useCallback(
     (data: SearchFormData) => {
-      navigate(`/stock/${data.symbol}`);
-      setValue('symbol', '');
+      router.push(`/stock/${data.symbol}`);
+      setValue("symbol", "");
       setIsOpen(false);
       dispatch(clearSearchResults());
     },
-    [navigate, setValue, dispatch]
+    [router, setValue, dispatch]
   );
 
   // Handle selecting a result
   const handleSelectResult = useCallback(
     (symbol: string) => {
-      navigate(`/stock/${symbol}`);
-      setValue('symbol', '');
+      router.push(`/stock/${symbol}`);
+      setValue("symbol", "");
       setIsOpen(false);
       dispatch(clearSearchResults());
     },
-    [navigate, setValue, dispatch]
+    [router, setValue, dispatch]
   );
 
   // Handle keyboard navigation
@@ -99,25 +94,25 @@ export const SearchForm = memo(function SearchForm() {
       if (!isOpen || searchResults.length === 0) return;
 
       switch (e.key) {
-        case 'ArrowDown':
+        case "ArrowDown":
           e.preventDefault();
           setHighlightedIndex((prev) =>
             prev < searchResults.length - 1 ? prev + 1 : 0
           );
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           e.preventDefault();
           setHighlightedIndex((prev) =>
             prev > 0 ? prev - 1 : searchResults.length - 1
           );
           break;
-        case 'Enter':
+        case "Enter":
           e.preventDefault();
           if (highlightedIndex >= 0) {
             handleSelectResult(searchResults[highlightedIndex].symbol);
           }
           break;
-        case 'Escape':
+        case "Escape":
           setIsOpen(false);
           break;
       }
@@ -148,9 +143,9 @@ export const SearchForm = memo(function SearchForm() {
 
           {/* Input */}
           <input
-            {...register('symbol')}
+            {...register("symbol")}
             ref={(e) => {
-              register('symbol').ref(e);
+              register("symbol").ref(e);
               (inputRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
             }}
             type="text"
@@ -163,12 +158,12 @@ export const SearchForm = memo(function SearchForm() {
               text-white placeholder-slate-400
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
               transition-all duration-200
-              ${errors.symbol ? 'border-red-500' : 'border-slate-600'}
+              ${errors.symbol ? "border-red-500" : "border-slate-600"}
             `}
           />
 
           {/* Loading Spinner */}
-          {status === 'loading' && (
+          {status === "loading" && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
               <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
@@ -196,22 +191,16 @@ export const SearchForm = memo(function SearchForm() {
                     transition-colors duration-150
                     ${
                       highlightedIndex === index
-                        ? 'bg-blue-600'
-                        : 'hover:bg-slate-700'
+                        ? "bg-blue-600"
+                        : "hover:bg-slate-700"
                     }
                   `}
                 >
                   <div>
-                    <span className="font-semibold text-white">
-                      {result.symbol}
-                    </span>
-                    <span className="ml-2 text-sm text-slate-400">
-                      {result.name}
-                    </span>
+                    <span className="font-semibold text-white">{result.symbol}</span>
+                    <span className="ml-2 text-sm text-slate-400">{result.name}</span>
                   </div>
-                  <span className="text-xs text-slate-500 uppercase">
-                    {result.type}
-                  </span>
+                  <span className="text-xs text-slate-500 uppercase">{result.type}</span>
                 </button>
               </li>
             ))}
@@ -220,7 +209,7 @@ export const SearchForm = memo(function SearchForm() {
       )}
 
       {/* No Results Message */}
-      {isOpen && searchValue && searchResults.length === 0 && status !== 'loading' && (
+      {isOpen && searchValue && searchResults.length === 0 && status !== "loading" && (
         <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-600 rounded-lg shadow-xl p-4">
           <p className="text-slate-400 text-center">No results found</p>
         </div>
