@@ -24,9 +24,21 @@ const POPULAR_STOCKS = [
 const transactionSchema = z.object({
   symbol: z.string().min(1, 'Symbol is required').max(10, 'Symbol too long'),
   shares: z.number().min(1, 'Minimum 1 share required').max(100000, 'Maximum 100,000 shares'),
+  purchaseDate: z.string().optional(),
+  sellDate: z.string().optional(),
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
+
+function toLocalDateTimeInputValue(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  const mm = pad(date.getMonth() + 1);
+  const dd = pad(date.getDate());
+  const hh = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
 
 interface TransactionFormProps {
   isOpen: boolean;
@@ -56,6 +68,18 @@ export const TransactionForm = memo(function TransactionForm({
   const [priceError, setPriceError] = useState<string | null>(null);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('');
 
+  // Purchase date support
+  const [purchaseDateInput, setPurchaseDateInput] = useState<string>(toLocalDateTimeInputValue(new Date()));
+  const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
+  const [isLoadingPurchasePrice, setIsLoadingPurchasePrice] = useState(false);
+  const [purchasePriceError, setPurchasePriceError] = useState<string | null>(null);
+
+  // Sell date support
+  const [sellDateInput, setSellDateInput] = useState<string>(toLocalDateTimeInputValue(new Date()));
+  const [sellPrice, setSellPrice] = useState<number | null>(null);
+  const [isLoadingSellPrice, setIsLoadingSellPrice] = useState(false);
+  const [sellPriceError, setSellPriceError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -68,38 +92,61 @@ export const TransactionForm = memo(function TransactionForm({
     defaultValues: {
       symbol: prefilledHolding?.symbol || '',
       shares: 1,
+      purchaseDate: toLocalDateTimeInputValue(new Date()),
+      sellDate: toLocalDateTimeInputValue(new Date()),
     },
   });
 
   const watchedSymbol = watch('symbol');
   const watchedShares = watch('shares');
+  const watchedPurchaseDate = watch('purchaseDate');
+  const watchedSellDate = watch('sellDate');
 
   // Debounce symbol input for auto-fetch
   const debouncedSymbol = useDebounce(watchedSymbol, 500);
 
+  // Determine displayed price: prefer selected date price when applicable
+  const displayedPrice = mode === 'buy'
+    ? (watchedPurchaseDate ? (purchasePrice ?? currentPrice) : currentPrice)
+    : mode === 'sell'
+    ? (watchedSellDate ? (sellPrice ?? currentPrice) : currentPrice)
+    : currentPrice;
+
   // Calculate total cost
-  const totalCost = currentPrice ? currentPrice * (watchedShares || 0) : 0;
+  const totalCost = displayedPrice ? displayedPrice * (watchedShares || 0) : 0;
 
   // Get max shares for sell mode
   const maxShares = mode === 'sell' && prefilledHolding ? prefilledHolding.shares : 0;
 
-  // Calculate max affordable shares for buy mode
+  // Calculate max affordable shares for buy mode (uses displayed price if purchase date selected)
   const maxAffordableShares = useMemo(() => {
-    if (!currentPrice || currentPrice <= 0) return 0;
-    return Math.floor(cashBalance / currentPrice);
-  }, [cashBalance, currentPrice]);
+    const price = displayedPrice;
+    if (!price || price <= 0) return 0;
+    return Math.floor(cashBalance / price);
+  }, [cashBalance, displayedPrice]);
 
   // Reset form when modal opens/closes or mode changes
   useEffect(() => {
     if (isOpen) {
+      const defaultDateStr = toLocalDateTimeInputValue(new Date());
       reset({
         symbol: prefilledHolding?.symbol || '',
         shares: 1,
+        purchaseDate: defaultDateStr,
+        sellDate: defaultDateStr,
       });
       setCurrentPrice(null);
       setStockName(prefilledHolding?.name || '');
       setPriceError(null);
       setSelectedSymbol(prefilledHolding?.symbol || '');
+      setPurchaseDateInput(defaultDateStr);
+      setPurchasePrice(null);
+      setIsLoadingPurchasePrice(false);
+      setPurchasePriceError(null);
+      setSellDateInput(defaultDateStr);
+      setSellPrice(null);
+      setIsLoadingSellPrice(false);
+      setSellPriceError(null);
       dispatch(clearError());
       
       // If prefilled, fetch the current price
@@ -154,6 +201,74 @@ export const TransactionForm = memo(function TransactionForm({
       fetchPrice(debouncedSymbol);
     }
   }, [debouncedSymbol, mode, selectedSymbol, fetchPrice]);
+
+  // Fetch purchase date price when purchase date or selected symbol changes
+  useEffect(() => {
+    const fetchPurchase = async () => {
+      const purchaseDate = watch('purchaseDate') || purchaseDateInput;
+      if (mode !== 'buy' || !selectedSymbol || !purchaseDate) {
+        setPurchasePrice(null);
+        setPurchasePriceError(null);
+        return;
+      }
+
+      const ts = new Date(purchaseDate).getTime();
+      if (isNaN(ts) || ts > Date.now()) {
+        setPurchasePriceError('Invalid purchase date');
+        setPurchasePrice(null);
+        return;
+      }
+
+      setIsLoadingPurchasePrice(true);
+      setPurchasePriceError(null);
+      try {
+        const price = await stockApi.getPriceAtDate(selectedSymbol, ts);
+        setPurchasePrice(price);
+      } catch {
+        setPurchasePriceError('Failed to fetch price for selected date');
+        setPurchasePrice(null);
+      } finally {
+        setIsLoadingPurchasePrice(false);
+      }
+    };
+
+    const debounce = setTimeout(fetchPurchase, 250);
+    return () => clearTimeout(debounce);
+  }, [watch('purchaseDate'), purchaseDateInput, selectedSymbol, mode]);
+
+  // Fetch sell date price when sell date or selected symbol changes
+  useEffect(() => {
+    const fetchSell = async () => {
+      const sellDate = watch('sellDate') || sellDateInput;
+      if (mode !== 'sell' || !selectedSymbol || !sellDate) {
+        setSellPrice(null);
+        setSellPriceError(null);
+        return;
+      }
+
+      const ts = new Date(sellDate).getTime();
+      if (isNaN(ts) || ts > Date.now()) {
+        setSellPriceError('Invalid sell date');
+        setSellPrice(null);
+        return;
+      }
+
+      setIsLoadingSellPrice(true);
+      setSellPriceError(null);
+      try {
+        const price = await stockApi.getPriceAtDate(selectedSymbol, ts);
+        setSellPrice(price);
+      } catch {
+        setSellPriceError('Failed to fetch price for selected date');
+        setSellPrice(null);
+      } finally {
+        setIsLoadingSellPrice(false);
+      }
+    };
+
+    const debounce = setTimeout(fetchSell, 250);
+    return () => clearTimeout(debounce);
+  }, [watch('sellDate'), sellDateInput, selectedSymbol, mode]);
 
   // Search symbols as user types + filter from popular stocks
   useEffect(() => {
@@ -243,21 +358,78 @@ export const TransactionForm = memo(function TransactionForm({
   const onSubmit = async (data: TransactionFormData) => {
     try {
       if (mode === 'buy') {
+        // Handle optional purchase date: fetch historical price and set timestamp
+        let timestamp = Date.now();
+        let priceOverride: number | undefined;
+
+        if (data.purchaseDate) {
+          const ts = new Date(data.purchaseDate).getTime();
+          if (isNaN(ts) || ts > Date.now()) {
+            setPurchasePriceError('Invalid purchase date');
+            return;
+          }
+
+          try {
+            const histPrice = await stockApi.getPriceAtDate(data.symbol.toUpperCase(), ts);
+            if (histPrice > 0) {
+              priceOverride = histPrice;
+              timestamp = ts;
+            } else {
+              setPurchasePriceError('No historical price available for selected date');
+              return;
+            }
+          } catch {
+            setPurchasePriceError('Failed to fetch historical price for selected date');
+            return;
+          }
+        }
+
         await dispatch(
           executeBuyOrder({
             symbol: data.symbol.toUpperCase(),
             name: stockName || data.symbol.toUpperCase(),
             shares: data.shares,
+            timestamp,
+            price: typeof priceOverride === 'number' ? priceOverride : undefined,
           })
         ).unwrap();
       } else {
+        // Handle optional sell date: fetch historical price and set timestamp
+        let timestamp = Date.now();
+        let priceOverride: number | undefined;
+
+        if (data.sellDate) {
+          const ts = new Date(data.sellDate).getTime();
+          if (isNaN(ts) || ts > Date.now()) {
+            setSellPriceError('Invalid sell date');
+            return;
+          }
+
+          try {
+            const histPrice = await stockApi.getPriceAtDate(data.symbol.toUpperCase(), ts);
+            if (histPrice > 0) {
+              priceOverride = histPrice;
+              timestamp = ts;
+            } else {
+              setSellPriceError('No historical price available for selected date');
+              return;
+            }
+          } catch {
+            setSellPriceError('Failed to fetch historical price for selected date');
+            return;
+          }
+        }
+
         await dispatch(
           executeSellOrder({
             symbol: data.symbol.toUpperCase(),
             shares: data.shares,
+            timestamp,
+            price: typeof priceOverride === 'number' ? priceOverride : undefined,
           })
         ).unwrap();
       }
+
       onClose();
     } catch {
       // Error is handled by Redux
@@ -282,7 +454,7 @@ export const TransactionForm = memo(function TransactionForm({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white">
-            {mode === 'buy' ? 'Buy Stock' : 'Sell Stock'}
+            {mode === 'buy' ? 'Add to Portfolio' : 'Sell / Reduce Position'}
           </h2>
           <button
             onClick={onClose}
@@ -414,17 +586,37 @@ export const TransactionForm = memo(function TransactionForm({
           </div>
 
           {/* Stock Info Display */}
-          {(stockName || currentPrice) && (
+          {(stockName || currentPrice || (mode === 'buy' && purchasePrice)) && (
             <div className="p-3 bg-slate-700/30 rounded-lg flex items-center justify-between">
               <div>
                 <p className="text-white font-medium">{stockName || selectedSymbol}</p>
-                {priceError && <p className="text-red-400 text-sm">{priceError}</p>}
+                {(priceError || purchasePriceError) && <p className="text-red-400 text-sm">{priceError || purchasePriceError}</p>}
               </div>
-              {currentPrice && (
+              {displayedPrice ? (
                 <p className="text-2xl font-bold text-white">
-                  ${currentPrice.toFixed(2)}
+                  ${displayedPrice.toFixed(2)}
                 </p>
+              ) : (
+                <p className="text-2xl font-bold text-white">-</p>
               )}
+            </div>
+          )}
+
+          {/* Purchase Date (Buy only) */}
+          {mode === 'buy' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Purchase Date (optional)</label>
+              <input
+                {...register('purchaseDate')}
+                type="datetime-local"
+                max={toLocalDateTimeInputValue(new Date())}
+                onChange={(e) => { setPurchaseDateInput(e.target.value); }}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none"
+              />
+              <p className="mt-1 text-sm text-slate-400">
+                Price on selected date:{' '}
+                {isLoadingPurchasePrice ? 'Loading...' : purchasePrice ? `$${purchasePrice.toFixed(2)}` : purchasePriceError ? purchasePriceError : '-'}
+              </p>
             </div>
           )}
 
@@ -494,7 +686,10 @@ export const TransactionForm = memo(function TransactionForm({
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Price per share</span>
               <span className="text-white">
-                {currentPrice ? `$${currentPrice.toFixed(2)}` : '-'}
+                {displayedPrice ? `$${displayedPrice.toFixed(2)}` : '-'}
+                {mode === 'buy' && watchedPurchaseDate && purchasePrice !== null && (
+                  <span className="text-xs text-slate-400 ml-2"> (price on selected date)</span>
+                )}
               </span>
             </div>
             <div className="flex justify-between text-sm">

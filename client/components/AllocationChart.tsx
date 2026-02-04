@@ -73,33 +73,12 @@ export const AllocationChart = memo(function AllocationChart() {
 
   if (chartData.length === 0 || (chartData.length === 1 && chartData[0].symbol === 'CASH')) {
     return (
-      <div className="bg-card rounded-xl p-6 h-full">
+      <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6 h-full">
         <h3 className="text-lg font-semibold text-white mb-4">Portfolio Allocation</h3>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <svg
-              className="w-12 h-12 mx-auto mb-4 text-slate-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
-              />
-            </svg>
-            <p className="text-slate-400 mb-2">No allocation data</p>
-            <p className="text-slate-500 text-sm">
-              Buy some stocks to see your portfolio distribution
-            </p>
+            <p className="text-gray-500 mb-2">No allocation data</p>
+            <p className="text-gray-500 text-sm">Your portfolio allocation will appear here</p>
           </div>
         </div>
       </div>
@@ -107,7 +86,7 @@ export const AllocationChart = memo(function AllocationChart() {
   }
 
   return (
-    <div className="bg-card rounded-xl p-6 h-full">
+    <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6 h-full">
       <h3 className="text-lg font-semibold text-white mb-4">Portfolio Allocation</h3>
 
       {/* Chart */}
@@ -149,10 +128,10 @@ export const AllocationChart = memo(function AllocationChart() {
                     item.symbol === 'CASH' ? '#64748b' : COLORS[index % COLORS.length],
                 }}
               />
-              <span className="text-slate-300">
+              <span className="text-gray-300 font-mono">
                 {item.symbol}
                 {item.symbol !== 'CASH' && (
-                  <span className="text-slate-500 ml-1 text-xs">
+                  <span className="text-gray-500 ml-1 text-xs">
                     {item.name.slice(0, 15)}
                     {item.name.length > 15 && '...'}
                   </span>
@@ -160,10 +139,10 @@ export const AllocationChart = memo(function AllocationChart() {
               </span>
             </div>
             <div className="text-right">
-              <span className="text-white font-medium">
+              <span className="text-white font-medium font-mono">
                 {item.percentage.toFixed(1)}%
               </span>
-              <span className="text-slate-500 ml-2">
+              <span className="text-gray-500 ml-2 font-mono">
                 ${item.value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </span>
             </div>
@@ -172,10 +151,10 @@ export const AllocationChart = memo(function AllocationChart() {
       </div>
 
       {/* Total */}
-      <div className="mt-4 pt-4 border-t border-slate-700/50">
+      <div className="mt-4 pt-4 border-t border-[#30363d]">
         <div className="flex justify-between items-center">
-          <span className="text-slate-400 text-sm">Total Value</span>
-          <span className="text-white font-semibold">
+          <span className="text-gray-500 text-sm">Total Value</span>
+          <span className="text-white font-semibold font-mono">
             ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
@@ -207,14 +186,14 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   const data = payload[0].payload;
 
   return (
-    <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl">
-      <p className="font-semibold text-white">{data.symbol}</p>
-      <p className="text-slate-400 text-sm">{data.name}</p>
-      <div className="mt-2 pt-2 border-t border-slate-600">
-        <p className="text-white">
+    <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-3 shadow-xl">
+      <p className="font-semibold text-white font-mono">{data.symbol}</p>
+      <p className="text-gray-500 text-sm">{data.name}</p>
+      <div className="mt-2 pt-2 border-t border-[#30363d]">
+        <p className="text-white font-mono">
           ${data.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
-        <p className="text-slate-400 text-sm">{data.percentage.toFixed(2)}% of portfolio</p>
+        <p className="text-gray-500 text-sm font-mono">{data.percentage.toFixed(2)}% of portfolio</p>
       </div>
     </div>
   );

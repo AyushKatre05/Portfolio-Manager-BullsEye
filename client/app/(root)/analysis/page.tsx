@@ -261,7 +261,7 @@ export default function Analysis() {
                   <h2 className="text-lg font-semibold text-white">Price Chart</h2>
                   <span className="text-sm font-mono text-gray-500">{stockSymbol}.{selectedExchange}</span>
                 </div>
-                <div className="h-[420px] min-h-[320px] w-full">
+                <div className="h-[420px] min-h-80 w-full">
                   <StockChart
                     dates={stockData.map(d => d.date)}
                     actualPrices={stockData.map(d => d.price)}

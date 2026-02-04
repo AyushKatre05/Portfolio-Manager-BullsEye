@@ -108,27 +108,24 @@ export const fetchPortfolioPrices = createAsyncThunk<
  */
 export const executeBuyOrder = createAsyncThunk<
   { holding: PortfolioHolding; transaction: Transaction; newCashBalance: number },
-  { symbol: string; name: string; shares: number },
+  { symbol: string; name: string; shares: number; timestamp?: number; price?: number },
   { state: { portfolio: PortfolioState } }
 >(
   'portfolio/executeBuy',
-  async ({ symbol, name, shares }, { getState, rejectWithValue }) => {
+  async ({ symbol, name, shares, timestamp, price: priceOverride }, { getState, rejectWithValue }) => {
     try {
       const { cashBalance, holdings } = getState().portfolio;
       
-      // Fetch current price
-      const price = await stockApi.getPrice(symbol, true);
+      // Use provided price (e.g. historical) or fetch current price
+      const price = typeof priceOverride === 'number' && priceOverride > 0
+        ? priceOverride
+        : await stockApi.getPrice(symbol, true);
       
       if (price === 0) {
-        throw new Error('Unable to fetch current price for this stock');
+        throw new Error('Unable to fetch a valid price for this stock');
       }
       
       const total = price * shares;
-      
-      // Check if user has enough cash
-      if (total > cashBalance) {
-        throw new Error(`Insufficient funds. Required: $${total.toFixed(2)}, Available: $${cashBalance.toFixed(2)}`);
-      }
       
       // Find existing holding or create new
       const existingHolding = holdings.find((h) => h.symbol === symbol);
@@ -166,13 +163,14 @@ export const executeBuyOrder = createAsyncThunk<
         shares,
         price,
         total,
-        timestamp: Date.now(),
+        timestamp: typeof timestamp === 'number' && timestamp > 0 ? timestamp : Date.now(),
       };
       
       return {
         holding: newHolding,
         transaction,
-        newCashBalance: cashBalance - total,
+        // Portfolio manager mode: do not simulate cash constraints here
+        newCashBalance: cashBalance,
       };
     } catch (error) {
       return rejectWithValue(
@@ -187,11 +185,11 @@ export const executeBuyOrder = createAsyncThunk<
  */
 export const executeSellOrder = createAsyncThunk<
   { holding: PortfolioHolding | null; transaction: Transaction; newCashBalance: number; realizedPnL: number },
-  { symbol: string; shares: number },
+  { symbol: string; shares: number; timestamp?: number; price?: number },
   { state: { portfolio: PortfolioState } }
 >(
   'portfolio/executeSell',
-  async ({ symbol, shares }, { getState, rejectWithValue }) => {
+  async ({ symbol, shares, timestamp, price: priceOverride }, { getState, rejectWithValue }) => {
     try {
       const { cashBalance, holdings } = getState().portfolio;
       
@@ -206,11 +204,13 @@ export const executeSellOrder = createAsyncThunk<
         throw new Error(`You only own ${existingHolding.shares} shares of ${symbol}`);
       }
       
-      // Fetch current price
-      const price = await stockApi.getPrice(symbol, true);
+      // Use provided price override (e.g., historical sell price) or fetch current price
+      const price = typeof priceOverride === 'number' && priceOverride > 0
+        ? priceOverride
+        : await stockApi.getPrice(symbol, true);
       
       if (price === 0) {
-        throw new Error('Unable to fetch current price for this stock');
+        throw new Error('Unable to fetch price for this stock');
       }
       
       const total = price * shares;
@@ -242,7 +242,7 @@ export const executeSellOrder = createAsyncThunk<
         shares,
         price,
         total,
-        timestamp: Date.now(),
+        timestamp: typeof timestamp === 'number' && timestamp > 0 ? timestamp : Date.now(),
       };
       
       return {
@@ -269,6 +269,17 @@ const portfolioSlice = createSlice({
     // Update current price for a symbol
     updatePrice: (state, action: PayloadAction<{ symbol: string; price: number }>) => {
       state.currentPrices[action.payload.symbol] = action.payload.price;
+    },
+
+    // Remove a holding (portfolio manager action)
+    removeHolding: (state, action: PayloadAction<{ symbol: string }>) => {
+      const symbol = action.payload.symbol;
+      state.holdings = state.holdings.filter((h) => h.symbol !== symbol);
+      delete state.currentPrices[symbol];
+
+      saveToStorage({
+        holdings: state.holdings,
+      });
     },
     
     // Reset portfolio to initial state
@@ -415,6 +426,7 @@ const portfolioSlice = createSlice({
 
 export const { 
   updatePrice, 
+  removeHolding,
   resetPortfolio, 
   clearError,
   setInitialBalance,
