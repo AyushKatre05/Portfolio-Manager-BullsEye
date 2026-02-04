@@ -31,6 +31,7 @@ interface StockChartProps {
   futureDates?: string[];
   futurePredictions?: number[];
   symbol: string;
+  className?: string;
 }
 
 const StockChart: React.FC<StockChartProps> = ({
@@ -39,7 +40,8 @@ const StockChart: React.FC<StockChartProps> = ({
   predictedPrices,
   futureDates = [],
   futurePredictions = [],
-  symbol
+  symbol,
+  className = ''
 }) => {
   const allDates = [...dates, ...futureDates];
   const data = {
@@ -171,7 +173,7 @@ const StockChart: React.FC<StockChartProps> = ({
   };
 
   return (
-    <div className="w-full h-96 bg-white rounded-lg shadow-lg p-4">
+    <div className={`w-full bg-white rounded-lg shadow-lg p-4 ${className || 'h-96'}`}>
       <Line data={data} options={options} />
     </div>
   );
