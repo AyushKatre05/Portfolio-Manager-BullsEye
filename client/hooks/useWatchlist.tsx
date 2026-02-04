@@ -23,6 +23,7 @@ interface WatchlistContextType {
 const WatchlistContext = createContext<WatchlistContextType | undefined>(
   undefined
 )
+const BACKEND_URL = "http://localhost:8080"
 
 const WATCHLIST_CACHE_KEY = "user_watchlist_cache"
 const WATCHLIST_CACHE_EXPIRY_KEY = "user_watchlist_cache_expiry"
@@ -118,7 +119,9 @@ export function WatchlistProvider({children}: {children: ReactNode}) {
 
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/wishlist/get?userId=${userId}`)
+      const response = await fetch(
+  `${BACKEND_URL}/api/watchlist?userId=${encodeURIComponent(userId)}`
+)
 
       if (!response.ok) {
         throw new Error("Failed to fetch watchlist")
@@ -152,17 +155,13 @@ export function WatchlistProvider({children}: {children: ReactNode}) {
     try {
       setIsAdding(true)
 
-      const response = await fetch("/api/wishlist/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          symbol,
-          company,
-        }),
-      })
+const response = await fetch(`${BACKEND_URL}/api/watchlist`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ userId, symbol, company }),
+})
+
+
 
       if (!response.ok) {
         throw new Error("Failed to add to watchlist")
@@ -187,13 +186,9 @@ export function WatchlistProvider({children}: {children: ReactNode}) {
       setIsRemoving(true)
 
       const response = await fetch(
-        `/api/wishlist/remove?userId=${encodeURIComponent(
-          userId
-        )}&symbol=${encodeURIComponent(symbol)}`,
-        {
-          method: "DELETE",
-        }
-      )
+  `${BACKEND_URL}/api/watchlist?userId=${encodeURIComponent(userId)}&symbol=${encodeURIComponent(symbol)}`,
+  { method: "DELETE" }
+)
 
       if (!response.ok) {
         throw new Error("Failed to remove from watchlist")

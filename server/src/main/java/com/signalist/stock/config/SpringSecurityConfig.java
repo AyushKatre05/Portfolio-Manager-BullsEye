@@ -66,11 +66,17 @@ public class SpringSecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**","/api/stocks/search","/api/stocks/profile").permitAll()
-                        .requestMatchers("/api/wishlist/**").authenticated()
+                        .requestMatchers(
+                                "/auth/**",
+                                "/api/stocks/search",
+                                "/api/stocks/profile",
+                                "/api/watchlist/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sess ->
+                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .userDetailsService(userDetailsService);
 
         httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

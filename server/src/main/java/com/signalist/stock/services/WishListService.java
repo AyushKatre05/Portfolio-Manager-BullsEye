@@ -9,89 +9,72 @@ import com.signalist.stock.repository.WishListRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class WishListService {
 
-    private final UserRepository userRepository;
     private final WishListRepository wishListRepository;
+    private final UserRepository userRepository;
 
     public WishListService(
-            UserRepository userRepository,
-            WishListRepository wishListRepository
+            WishListRepository wishListRepository,
+            UserRepository userRepository
     ) {
-        this.userRepository = userRepository;
         this.wishListRepository = wishListRepository;
+        this.userRepository = userRepository;
     }
 
     // -------------------------
     // ADD TO WISHLIST
     // -------------------------
-    public void saveEntity(WishListRequest request) {
+    public void addToWishList(WishListRequest request) {
 
-        UUID userId = UUID.fromString(request.getUserId());
-        if (userId == null) return;
+        User user = userRepository.findByEmail(request.getUserId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("User not found: " + request.getUserId())
+                );
 
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isEmpty()) return;
+        boolean exists = wishListRepository.existsByUser_EmailAndSymbol(
+                user.getEmail(),
+                request.getSymbol()
+        );
 
-        User user = userOpt.get();
+        if (exists) {
+            return; // silently ignore duplicate (or throw 409 if you want)
+        }
 
         WishList wishList = WishList.builder()
                 .user(user)
                 .symbol(request.getSymbol())
                 .company(request.getCompany())
-                .addedAt(Date.from(Instant.now()).toInstant())
                 .build();
 
         wishListRepository.save(wishList);
     }
 
     // -------------------------
-    // GET SYMBOLS BY EMAIL
+    // GET USER WISHLIST
     // -------------------------
-    public List<String> getSymbolByEmail(String email) {
-        if (email == null || email.isBlank()) return List.of();
+    @Transactional(readOnly = true)
+    public List<WishListResponse> getByEmail(String email) {
 
-        Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) return List.of();
-
-        return wishListRepository
-                .findByUserId(userOpt.get().getId())
-                .stream()
-                .map(WishList::getSymbol)
-                .collect(Collectors.toList());
-    }
-
-    // -------------------------
-    // GET FULL WISHLIST
-    // -------------------------
-    public List<WishListResponse> getSymbolByUserId(UUID userId) {
-        if (userId == null) return List.of();
-
-        return wishListRepository.findByUserId(userId)
+        return wishListRepository.findByUser_Email(email)
                 .stream()
                 .map(w -> new WishListResponse(
                         w.getSymbol(),
                         w.getCompany(),
                         w.getAddedAt()
                 ))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // -------------------------
     // REMOVE FROM WISHLIST
     // -------------------------
-    @Transactional
-    public void deleteByUserIdAndSymbol(UUID userId, String symbol) {
-        if (userId == null || symbol == null || symbol.isBlank()) return;
+    public void deleteByEmailAndSymbol(String email, String symbol) {
 
-        wishListRepository.deleteByUserIdAndSymbol(userId, symbol);
+        wishListRepository.deleteByUser_EmailAndSymbol(email, symbol);
     }
 }
