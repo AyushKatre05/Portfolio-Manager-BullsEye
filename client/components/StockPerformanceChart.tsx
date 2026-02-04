@@ -106,10 +106,12 @@ export const StockPerformanceChart = memo(function StockPerformanceChart({
         bodyColor: '#c9d1d9',
         callbacks: {
           label: function (context) {
+            const y = context.parsed && typeof (context.parsed as any).y === 'number' ? (context.parsed as any).y : null;
+            if (y === null) return '';
             if (context.datasetIndex === 0) {
-              return `Price: $${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+              return `Price: $${y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             }
-            return `Purchase: $${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            return `Purchase: $${y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           },
         },
       },
