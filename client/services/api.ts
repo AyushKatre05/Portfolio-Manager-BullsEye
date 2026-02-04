@@ -308,6 +308,94 @@ export const stockApi = {
   },
   
   /**
+   * Get the closing/representative price for a symbol at a specific timestamp (ms)
+   * Returns the close price for the given date (falls back if no data)
+   */
+  async getPriceAtDate(symbol: string, timestampMs: number, skipCache = false): Promise<number> {
+    const upperSymbol = symbol.toUpperCase();
+    // Use day key for caching
+    const dayKey = Math.floor(timestampMs / (24 * 60 * 60 * 1000));
+    const cacheKey = `price_at:${upperSymbol}:${dayKey}`;
+
+    return cachedRequest(cacheKey, async () => {
+      const ts = Math.floor(timestampMs / 1000);
+
+      // Try expanding window up to +/- 7 days to find the nearest available daily candle
+      for (let days = 0; days <= 7; days++) {
+        const from = ts - days * 24 * 60 * 60;
+        const to = ts + days * 24 * 60 * 60;
+
+        try {
+          const response = await apiClient.get('/stock/candle', {
+            params: {
+              symbol: upperSymbol,
+              resolution: 'D',
+              from,
+              to,
+            },
+          });
+
+          const data = response.data;
+          if (data && data.s !== 'no_data' && Array.isArray(data.c) && data.c.length > 0) {
+            // Choose the close value closest to the requested timestamp
+            let bestIndex = 0;
+            let bestDiff = Infinity;
+            for (let i = 0; i < data.t.length; i++) {
+              const dt = Math.abs(data.t[i] - ts);
+              if (dt < bestDiff) {
+                bestDiff = dt;
+                bestIndex = i;
+              }
+            }
+            return data.c[bestIndex] || 0;
+          }
+        } catch (err) {
+          // ignore and expand window
+        }
+      }
+
+      // As a fallback, get the current quote price (not ideal but better than failing)
+      try {
+        const response = await apiClient.get('/quote', { params: { symbol: upperSymbol } });
+        return response.data.c || 0;
+      } catch {
+        throw new Error('No price available for requested date');
+      }
+    }, skipCache);
+  },
+
+  // Fetch historical candles between two timestamps (seconds)
+  async getHistoricalRange(symbol: string, fromSec: number, toSec: number, resolution: string = 'D') {
+    const upperSymbol = symbol.toUpperCase();
+    const cacheKey = `historical_range:${upperSymbol}:${fromSec}:${toSec}:${resolution}`;
+    return cachedRequest(cacheKey, async () => {
+      const response = await apiClient.get('/stock/candle', {
+        params: {
+          symbol: upperSymbol,
+          resolution,
+          from: fromSec,
+          to: toSec,
+        },
+      });
+
+      const data = response.data;
+      if (data && data.s !== 'no_data' && Array.isArray(data.c) && data.c.length > 0) {
+        return data.c.map((close: number, index: number) => ({
+          date: new Date(data.t[index] * 1000).toISOString().split('T')[0],
+          open: data.o[index],
+          high: data.h[index],
+          low: data.l[index],
+          close: close,
+          volume: data.v[index],
+        }));
+      }
+
+      // If no data, return empty array (caller can decide fallback)
+      return [];
+    });
+  },
+
+  /**
    * Get only the price for a symbol (lightweight call)
    * Useful for portfolio updates
    */
@@ -322,6 +410,7 @@ export const stockApi = {
       return response.data.c || 0;
     }, skipCache);
   },
+
 
   /**
    * Get multiple stock prices at once
