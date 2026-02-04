@@ -23,7 +23,7 @@ interface WatchlistContextType {
 const WatchlistContext = createContext<WatchlistContextType | undefined>(
   undefined
 )
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 const WATCHLIST_CACHE_KEY = "user_watchlist_cache"
 const WATCHLIST_CACHE_EXPIRY_KEY = "user_watchlist_cache_expiry"
