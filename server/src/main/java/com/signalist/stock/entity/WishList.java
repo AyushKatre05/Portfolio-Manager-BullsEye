@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -34,6 +33,7 @@ public class WishList {
 
     private String company;
 
+    @Builder.Default
     @Column(nullable = false, updatable = false)
     private Instant addedAt = Instant.now();
 }

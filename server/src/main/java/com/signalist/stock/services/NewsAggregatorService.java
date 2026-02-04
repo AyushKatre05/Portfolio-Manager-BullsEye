@@ -1,5 +1,6 @@
 package com.signalist.stock.services;
 
+import com.signalist.stock.dto.WishListResponse;
 import com.signalist.stock.entity.User;
 import com.signalist.stock.util.GeminiClient;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,13 @@ public class NewsAggregatorService {
 
     public void processAndSendForUser(User user) throws Exception {
         String email = user.getEmail();
-        List<String> symbols = wishListService.getSymbolByEmail(email);
+
+        List<String> symbols = wishListService.getByEmail(email)
+                .stream()
+                .map(WishListResponse::symbol)
+                .distinct()
+                .toList();
+
         List<Map<String, Object>> articles;
 
         if(!symbols.isEmpty()){

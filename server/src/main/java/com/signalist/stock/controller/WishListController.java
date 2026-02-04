@@ -3,15 +3,13 @@ package com.signalist.stock.controller;
 import com.signalist.stock.dto.WishListRequest;
 import com.signalist.stock.dto.WishListResponse;
 import com.signalist.stock.services.WishListService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/wishlist")
+@RequestMapping("/api/watchlist")
 public class WishListController {
 
     private final WishListService wishListService;
@@ -21,35 +19,41 @@ public class WishListController {
     }
 
     // -------------------------
-    // ADD TO WISHLIST
+    // ADD TO WATCHLIST
+    // POST /api/watchlist
     // -------------------------
     @PostMapping
-    public ResponseEntity<?> addToWishlist(@RequestBody WishListRequest request) {
-        wishListService.saveEntity(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<Void> addToWatchlist(
+            @RequestBody WishListRequest request
+    ) {
+        System.out.println("🔥 HIT /api/watchlist POST");
+        wishListService.addToWishList(request);
+        return ResponseEntity.ok().build();
     }
 
     // -------------------------
-    // GET USER WISHLIST
+    // GET USER WATCHLIST
+    // GET /api/watchlist?userId=email
     // -------------------------
     @GetMapping
-    public ResponseEntity<List<WishListResponse>> getFromWishList(
-            @RequestParam UUID userId
+    public ResponseEntity<List<WishListResponse>> getWatchlist(
+            @RequestParam String userId // email
     ) {
         return ResponseEntity.ok(
-                wishListService.getSymbolByUserId(userId)
+                wishListService.getByEmail(userId)
         );
     }
 
     // -------------------------
-    // REMOVE FROM WISHLIST
+    // REMOVE FROM WATCHLIST
+    // DELETE /api/watchlist?userId=email&symbol=MSFT
     // -------------------------
     @DeleteMapping
-    public ResponseEntity<?> removeFromWishlist(
-            @RequestParam UUID userId,
+    public ResponseEntity<Void> removeFromWatchlist(
+            @RequestParam String userId, // email
             @RequestParam String symbol
     ) {
-        wishListService.deleteByUserIdAndSymbol(userId, symbol);
+        wishListService.deleteByEmailAndSymbol(userId, symbol);
         return ResponseEntity.noContent().build();
     }
 }
