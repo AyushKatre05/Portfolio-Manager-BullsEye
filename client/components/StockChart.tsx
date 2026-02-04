@@ -111,8 +111,8 @@ const StockChart: React.FC<StockChartProps> = ({
         callbacks: {
           label: function(context) {
             const label = context.dataset.label || '';
-            const value = context.parsed.y;
-            return `${label}: ₹${value?.toFixed(2) || 'N/A'}`;
+            const raw = context.parsed && typeof (context.parsed as any).y === 'number' ? (context.parsed as any).y : null;
+            return `${label}: ₹${raw !== null ? raw.toFixed(2) : 'N/A'}`;
           }
         }
       }

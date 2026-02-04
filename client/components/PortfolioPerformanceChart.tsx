@@ -74,7 +74,8 @@ export const PortfolioPerformanceChart = memo(function PortfolioPerformanceChart
         bodyColor: '#c9d1d9',
         callbacks: {
           label: function (context) {
-            return `$${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const y = context.parsed && typeof (context.parsed as any).y === 'number' ? (context.parsed as any).y : null;
+            return y !== null ? `$${y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
           },
         },
       },
