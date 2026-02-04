@@ -91,450 +91,215 @@ export default function Analysis() {
     }
   };
 
-  const getTrendEmoji = (trend: string) => {
-    switch (trend) {
-      case 'up': return '📈';
-      case 'down': return '📉';
-      default: return '➡️';
-    }
-  };
+  const hasResults = prediction || stockData.length > 0;
 
   return (
-    <div className="min-h-screen bg-black p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-gray-900 backdrop-blur-lg shadow-2xl border border-red-700/30 p-8 mb-8">
-          <div className="space-y-8">
-            {/* Exchange Toggle */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-1 h-6 bg-linear-to-b from-red-600 to-red-800"></div>
-                <h2 className="text-xl font-bold text-white">Select Exchange</h2>
+    <div className="min-h-screen bg-[#0d1117] text-gray-200 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-[1600px] mx-auto">
+        {/* Start / Toolbar: bigger when no results */}
+        <div className={`bg-[#161b22] border border-[#30363d] rounded-lg mb-6 ${hasResults ? 'p-4' : 'p-8 sm:p-10 lg:p-12'}`}>
+          <div className={hasResults ? 'flex flex-wrap items-center gap-4' : 'space-y-6'}>
+            {!hasResults && (
+              <div className="mb-2">
+                <h1 className="text-xl sm:text-2xl font-semibold text-white">Stock Analysis</h1>
+                <p className="text-sm text-gray-500 mt-0.5">Enter a symbol and run prediction</p>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setSelectedExchange('NSE')}
-                  disabled={loading}
-                  className={`group relative p-6 transition-all duration-300 ${
-                    selectedExchange === 'NSE'
-                      ? 'bg-linear-to-r from-red-600 to-red-700 text-white shadow-xl transform scale-105'
-                      : 'bg-gray-800 border-2 border-red-600/30 text-gray-300 hover:border-red-500/50 hover:shadow-lg hover:scale-102'
-                  } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  <div className="flex flex-col items-center space-y-3">
-                    <div className={`text-4xl transition-transform duration-300 group-hover:scale-110`}>
-                      🏛️
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-lg">NSE</div>
-                      <div className={`text-sm ${selectedExchange === 'NSE' ? 'text-red-100' : 'text-gray-400'}`}>
-                        National Stock Exchange
-                      </div>
-                    </div>
-                    {selectedExchange === 'NSE' && (
-                      <div className="absolute top-2 right-2 bg-red-500/40 text-white text-xs px-2 py-1">
-                        Active
-                      </div>
-                    )}
-                  </div>
-                </button>
-                
-                <button
-                  onClick={() => setSelectedExchange('BSE')}
-                  disabled={loading}
-                  className={`group relative p-6 transition-all duration-300 ${
-                    selectedExchange === 'BSE'
-                      ? 'bg-linear-to-r from-red-600 to-red-700 text-white shadow-xl transform scale-105'
-                      : 'bg-gray-800 border-2 border-red-600/30 text-gray-300 hover:border-red-500/50 hover:shadow-lg hover:scale-102'
-                  } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  <div className="flex flex-col items-center space-y-3">
-                    <div className={`text-4xl transition-transform duration-300 group-hover:scale-110`}>
-                      🏢
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-lg">BSE</div>
-                      <div className={`text-sm ${selectedExchange === 'BSE' ? 'text-red-100' : 'text-gray-400'}`}>
-                        Bombay Stock Exchange
-                      </div>
-                    </div>
-                    {selectedExchange === 'BSE' && (
-                      <div className="absolute top-2 right-2 bg-red-500/40 text-white text-xs px-2 py-1">
-                        Active
-                      </div>
-                    )}
-                  </div>
-                </button>
-              </div>
-              
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-300 bg-gray-800 p-3">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <span>Connected to <strong>{selectedExchange === 'NSE' ? 'National Stock Exchange' : 'Bombay Stock Exchange'}</strong></span>
-                <span className="text-red-400 font-semibold">• Live Data</span>
-              </div>
-            </div>
-
-            {/* Stock Symbol Input Section */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-1 h-6 bg-linear-to-b from-red-600 to-red-800"></div>
-                <h2 className="text-xl font-bold text-white">Enter Stock Symbol</h2>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl">
-                    📈
-                  </div>
-                  <input
-                    id="stockSymbol"
-                    type="text"
-                    value={stockSymbol}
-                    onChange={(e) => setStockSymbol(e.target.value.toUpperCase())}
-                    onKeyPress={(e) => e.key === 'Enter' && handlePredict()}
-                    placeholder="ENTER STOCK SYMBOL"
-                    className="w-full pl-16 pr-20 py-5 text-2xl font-bold text-white bg-gray-800 border-4 border-red-600/50 focus:border-red-500 focus:ring-4 focus:ring-red-600/30 focus:outline-none transition-all placeholder-gray-500 shadow-inner"
-                    style={{ 
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em'
-                    }}
+            )}
+            <div className={`flex flex-wrap items-center ${hasResults ? 'gap-4' : 'gap-6'}`}>
+              <div className="flex items-center gap-2">
+                <span className={`font-medium text-gray-500 uppercase tracking-wider ${hasResults ? 'text-xs' : 'text-sm'}`}>Exchange</span>
+                <div className="flex rounded overflow-hidden border border-[#30363d]">
+                  <button
+                    onClick={() => setSelectedExchange('NSE')}
                     disabled={loading}
-                  />
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                    <div className="bg-red-600/40 text-red-200 px-3 py-1 text-sm font-semibold">
-                      .{selectedExchange}
-                    </div>
-                  </div>
+                    className={`font-semibold transition-colors ${
+                      selectedExchange === 'NSE'
+                        ? 'bg-[#238636] text-white'
+                        : 'bg-[#21262d] text-gray-400 hover:bg-[#30363d]'
+                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${hasResults ? 'px-4 py-2.5 text-sm' : 'px-6 py-3.5 text-base'}`}
+                  >
+                    NSE
+                  </button>
+                  <button
+                    onClick={() => setSelectedExchange('BSE')}
+                    disabled={loading}
+                    className={`font-semibold transition-colors ${
+                      selectedExchange === 'BSE'
+                        ? 'bg-[#238636] text-white'
+                        : 'bg-[#21262d] text-gray-400 hover:bg-[#30363d]'
+                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${hasResults ? 'px-4 py-2.5 text-sm' : 'px-6 py-3.5 text-base'}`}
+                  >
+                    BSE
+                  </button>
                 </div>
-                
+              </div>
+              <div className={`flex-1 min-w-0 ${hasResults ? 'min-w-[200px] flex items-center gap-2' : 'w-full sm:min-w-[280px] flex items-center gap-3'}`}>
+                <input
+                  id="stockSymbol"
+                  type="text"
+                  value={stockSymbol}
+                  onChange={(e) => setStockSymbol(e.target.value.toUpperCase())}
+                  onKeyPress={(e) => e.key === 'Enter' && handlePredict()}
+                  placeholder={hasResults ? 'Symbol' : 'Enter stock symbol (e.g. RELIANCE)'}
+                  className={`flex-1 bg-[#0d1117] border border-[#30363d] rounded font-mono font-semibold text-white placeholder-gray-500 focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] ${hasResults ? 'px-4 py-2.5 text-lg' : 'px-5 py-4 text-xl sm:text-2xl'}`}
+                  style={{ letterSpacing: '0.05em' }}
+                  disabled={loading}
+                />
+                <span className={`font-mono text-gray-500 ${hasResults ? 'text-sm' : 'text-base'}`}>.{selectedExchange}</span>
+              </div>
+              <button
+                onClick={handlePredict}
+                disabled={loading || !stockSymbol.trim()}
+                className={`font-semibold rounded transition-colors ${
+                  loading || !stockSymbol.trim()
+                    ? 'bg-[#21262d] text-gray-500 cursor-not-allowed'
+                    : 'bg-[#238636] text-white hover:bg-[#2ea043]'
+                } ${hasResults ? 'px-6 py-2.5 text-sm' : 'px-8 py-4 text-base sm:text-lg'}`}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    Analyze
+                  </span>
+                ) : (
+                  'Predict'
+                )}
+              </button>
+            </div>
+            <div className={`flex flex-wrap items-center gap-2 ${hasResults ? 'mt-3' : 'mt-6 pt-6 border-t border-[#30363d]'}`}>
+              <span className={`text-gray-500 ${hasResults ? 'text-xs' : 'text-sm'}`}>Quick select:</span>
+              {(selectedExchange === 'NSE'
+                ? ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK']
+                : ['RELIANCE', 'TCS', 'WIPRO', 'BHARTIARTL', 'MARUTI']
+              ).map((stock) => (
                 <button
-                  onClick={handlePredict}
-                  disabled={loading || !stockSymbol.trim()}
-                  className={`w-full py-5 font-bold text-xl transition-all duration-300 ${
-                    loading 
-                      ? 'bg-red-600/50 text-white cursor-not-allowed'
-                      : !stockSymbol.trim()
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      : 'bg-linear-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95'
-                  }`}
+                  key={stock}
+                  onClick={() => setStockSymbol(stock)}
+                  disabled={loading}
+                  className={`font-mono rounded border transition-colors ${
+                    stockSymbol === stock
+                      ? 'bg-[#238636]/20 border-[#238636] text-[#7ee787]'
+                      : 'bg-[#21262d] border-[#30363d] text-gray-400 hover:border-[#484f58] hover:text-gray-300'
+                  } disabled:opacity-50 ${hasResults ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm'}`}
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center space-x-3">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                      <span>Analyzing {stockSymbol}.{selectedExchange}...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center space-x-3">
-                      <span>🚀</span>
-                      <span>PREDICT STOCK PRICE</span>
-                      <span>🎯</span>
-                    </div>
-                  )}
+                  {stock}
                 </button>
-              </div>
-              
-              {/* Quick Stock Selection */}
-              <div className="bg-gray-800 p-4">
-                <div className="text-sm font-semibold text-gray-200 mb-3">
-                  🔥 Popular {selectedExchange} Stocks - Click to Select:
-                </div>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {(selectedExchange === 'NSE' 
-                    ? ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK']
-                    : ['RELIANCE', 'TCS', 'WIPRO', 'BHARTIARTL', 'MARUTI']
-                  ).map(stock => (
-                    <button
-                      key={stock}
-                      onClick={() => setStockSymbol(stock)}
-                      disabled={loading}
-                      className={`px-4 py-3 text-sm font-bold transition-all duration-200 ${
-                        stockSymbol === stock
-                          ? 'bg-red-600 text-white shadow-lg transform scale-105'
-                          : 'bg-gray-700 text-red-400 hover:bg-gray-600 hover:shadow-md hover:scale-105'
-                      } disabled:opacity-50 disabled:cursor-not-allowed border border-red-600/30`}
-                    >
-                      {stock}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-
-          {error && (
-            <div className="mt-6 p-6 bg-gray-800 border-l-4 border-red-600 shadow-lg">
-              <div className="flex items-center space-x-3">
-                <div className="text-2xl">⚠️</div>
-                <div>
-                  <h3 className="text-lg font-semibold text-red-400 mb-1">Prediction Error</h3>
-                  <p className="text-red-300">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Results Section */}
+        {error && (
+          <div className="mb-6 p-4 bg-[#3d1f1f] border border-[#f85149]/50 rounded-lg">
+            <h3 className="text-sm font-semibold text-[#f85149] mb-1">Error</h3>
+            <p className="text-sm text-[#ff7b72]">{error}</p>
+          </div>
+        )}
+
         {loading && (
-          <div className="bg-gray-900 backdrop-blur-lg shadow-2xl border border-red-700/30 p-10 mb-8">
-            <div className="text-center space-y-6">
-              <div className="relative inline-flex">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-red-600/30"></div>
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-red-600 absolute top-0 left-0"></div>
-                <div className="absolute inset-0 flex items-center justify-center text-2xl">
-                  🤖
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-white">
-                  AI Model Processing
-                </h3>
-                <p className="text-lg text-gray-400">
-                  Training 9-feature neural network for <span className="font-semibold text-red-400">{stockSymbol}.{selectedExchange}</span>
-                </p>
-              </div>
-              
-              <div className="bg-gray-800 p-4 max-w-md mx-auto">
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">📊</div>
-                    <div className="font-semibold text-gray-300">Data Processing</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🧠</div>
-                    <div className="font-semibold text-gray-300">Neural Training</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🎯</div>
-                    <div className="font-semibold text-gray-300">Prediction</div>
-                  </div>
-                </div>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-12 mb-6">
+            <div className="flex flex-col items-center gap-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#30363d] border-t-[#58a6ff]" />
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white">Analyzing</h3>
+                <p className="text-sm text-gray-500 mt-1 font-mono">{stockSymbol}.{selectedExchange}</p>
               </div>
             </div>
           </div>
         )}
         
         {(prediction || stockData.length > 0) && !loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Prediction Results */}
+          <div className="space-y-6">
+            {/* Key metrics: big, prominent */}
             {prediction && (
-              <div className="bg-gray-900 backdrop-blur-lg shadow-2xl border border-red-700/30 p-8 hover:shadow-3xl transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-2 h-8 bg-linear-to-b from-red-500 to-red-700"></div>
-                  <h2 className="text-3xl font-bold bg-linear-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
-                    AI Prediction Results
-                  </h2>
-                  <div className="text-2xl">🎯</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Current Price</p>
+                  <p className="text-3xl sm:text-4xl font-mono font-bold text-white tabular-nums">
+                    ₹{prediction.currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 font-mono">{stockSymbol}.{selectedExchange}</p>
                 </div>
-                
-                <div className="space-y-6">
-                  {/* Price Comparison Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="group relative overflow-hidden bg-gray-800 p-6 hover:shadow-lg transition-all duration-300">
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-gray-700 -mr-10 -mt-10 opacity-50"></div>
-                      <div className="relative">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-xl">💰</span>
-                          <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Current Price</p>
-                        </div>
-                        <p className="text-3xl font-bold text-white">
-                          ₹{prediction.currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{stockSymbol}.{selectedExchange}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="group relative overflow-hidden bg-red-900/30 border border-red-700/50 p-6 hover:shadow-lg transition-all duration-300">
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-red-600/20 -mr-10 -mt-10 opacity-50"></div>
-                      <div className="relative">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-xl">🚀</span>
-                          <p className="text-sm font-semibold text-red-400 uppercase tracking-wide">AI Prediction</p>
-                        </div>
-                        <p className="text-3xl font-bold text-red-300">
-                          ₹{prediction.predictedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                        <p className="text-xs text-red-400 mt-1">Next trading day</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price Change Analysis */}
-                  <div className={`relative overflow-hidden p-6 ${
-                    prediction.trend === 'up' 
-                      ? 'bg-gray-800 border-l-4 border-green-500'
-                      : prediction.trend === 'down'
-                      ? 'bg-gray-800 border-l-4 border-red-600'
-                      : 'bg-gray-800 border-l-4 border-yellow-500'
-                  }`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-3xl">{getTrendEmoji(prediction.trend)}</span>
-                        <div>
-                          <h3 className="text-lg font-bold text-white">Price Movement Analysis</h3>
-                          <p className="text-sm text-gray-400">Expected change from current price</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-gray-400 mb-1">Absolute Change</p>
-                        <p className={`text-2xl font-bold ${getTrendColor(prediction.trend)}`}>
-                          {prediction.change > 0 ? '+' : ''}₹{Math.abs(prediction.change).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-gray-400 mb-1">Percentage Change</p>
-                        <p className={`text-2xl font-bold ${getTrendColor(prediction.trend)}`}>
-                          {prediction.changePercent > 0 ? '+' : ''}{prediction.changePercent.toFixed(2)}%
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Advanced Confidence Meter */}
-                  <div className="bg-gray-800 p-6 border border-red-700/50">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl">🎯</span>
-                        <h3 className="text-lg font-bold text-white">AI Confidence Score</h3>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-bold text-red-500">
-                          {prediction.confidence.toFixed(0)}%
-                        </div>
-                        <div className="text-xs text-gray-400">Accuracy Rating</div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>Low</span>
-                        <span>Medium</span>
-                        <span>High</span>
-                        <span>Excellent</span>
-                      </div>
-                      <div className="relative h-4 bg-gray-700 overflow-hidden">
-                        <div 
-                          className="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
-                          style={{ 
-                            width: `${prediction.confidence}%`,
-                            background: `linear-gradient(90deg, 
-                              ${prediction.confidence < 50 ? '#ef4444' : 
-                                prediction.confidence < 70 ? '#f59e0b' : 
-                                prediction.confidence < 85 ? '#10b981' : '#059669'}  0%, 
-                              ${prediction.confidence < 50 ? '#dc2626' : 
-                                prediction.confidence < 70 ? '#d97706' : 
-                                prediction.confidence < 85 ? '#059669' : '#047857'} 100%)`
-                          }}
-                        ></div>
-                        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3 text-center">
-                      <span className={`inline-flex items-center px-3 py-1 text-xs font-medium ${
-                        prediction.confidence >= 85 ? 'bg-green-900/30 text-green-300' :
-                        prediction.confidence >= 70 ? 'bg-yellow-900/30 text-yellow-300' :
-                        prediction.confidence >= 50 ? 'bg-orange-900/30 text-orange-300' :
-                        'bg-red-900/30 text-red-300'
-                      }`}>
-                        {prediction.confidence >= 85 ? '✨ Excellent Prediction' :
-                         prediction.confidence >= 70 ? '💪 Strong Prediction' :
-                         prediction.confidence >= 50 ? '⚠️ Moderate Prediction' :
-                         '🔴 Low Confidence'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Technical Details */}
-                  <div className="bg-gray-800 p-6 border border-red-700/50">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <span className="text-xl">🔍</span>
-                      <h3 className="text-lg font-semibold text-white">Technical Analysis Details</h3>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div className="bg-gray-700 p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span>🤖</span>
-                          <span className="font-semibold text-gray-200">AI Model</span>
-                        </div>
-                        <p className="text-gray-400">9-feature neural network with 64→32→16→1 architecture</p>
-                      </div>
-                      
-                      <div className="bg-gray-700 p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span>📊</span>
-                          <span className="font-semibold text-gray-200">Data Source</span>
-                        </div>
-                        <p className="text-gray-400">{selectedExchange} real-time market data with advanced preprocessing</p>
-                      </div>
-                      
-                      <div className="bg-gray-700 p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span>⚙️</span>
-                          <span className="font-semibold text-gray-200">Features</span>
-                        </div>
-                        <p className="text-gray-400">Moving averages, momentum, volatility, seasonal patterns</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 p-3 bg-red-900/30 border border-red-700/50">
-                      <div className="flex items-start space-x-2">
-                        <span className="text-red-400 mt-0.5">⚠️</span>
-                        <div className="text-sm">
-                          <span className="font-semibold text-red-400">Important Disclaimer:</span>
-                          <span className="text-red-300"> This AI prediction is for educational and research purposes only. Not financial advice. Always consult with qualified financial advisors before making investment decisions.</span>
-                        </div>
-                      </div>
-                    </div>
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Predicted Price</p>
+                  <p className="text-3xl sm:text-4xl font-mono font-bold text-[#58a6ff] tabular-nums">
+                    ₹{prediction.predictedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Next trading day</p>
+                </div>
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Change</p>
+                  <p className={`text-3xl sm:text-4xl font-mono font-bold tabular-nums ${getTrendColor(prediction.trend)}`}>
+                    {prediction.changePercent > 0 ? '+' : ''}{prediction.changePercent.toFixed(2)}%
+                  </p>
+                  <p className={`text-sm font-mono mt-1 ${getTrendColor(prediction.trend)}`}>
+                    {prediction.change > 0 ? '+' : ''}₹{Math.abs(prediction.change).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Confidence</p>
+                  <p className="text-3xl sm:text-4xl font-mono font-bold text-white tabular-nums">
+                    {prediction.confidence.toFixed(0)}%
+                  </p>
+                  <div className="mt-2 h-1.5 bg-[#21262d] rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${prediction.confidence}%`,
+                        backgroundColor: prediction.confidence >= 70 ? '#238636' : prediction.confidence >= 50 ? '#d29922' : '#da3633',
+                      }}
+                    />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Chart */}
+            {/* Chart: full width, tall */}
             {stockData.length > 0 && (
-              <div className="bg-gray-900 backdrop-blur-lg shadow-2xl border border-red-700/30 p-8 hover:shadow-3xl transition-all duration-300">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-8 bg-linear-to-b from-red-500 to-red-700"></div>
-                    <h2 className="text-3xl font-bold bg-linear-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
-                      Historical Price Chart
-                    </h2>
-                    <span className="text-2xl">📈</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-gray-800 px-4 py-2 border border-red-600/50">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-bold text-red-400">{stockSymbol}.{selectedExchange}</span>
-                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      </div>
+              <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-white">Price Chart</h2>
+                  <span className="text-sm font-mono text-gray-500">{stockSymbol}.{selectedExchange}</span>
+                </div>
+                <div className="h-[420px] min-h-[320px] w-full">
+                  <StockChart
+                    dates={stockData.map(d => d.date)}
+                    actualPrices={stockData.map(d => d.price)}
+                    predictedPrices={prediction ? generateHistoricalPredictions(stockData) : []}
+                    futureDates={prediction ? [getNextTradingDay(stockData[stockData.length - 1].date)] : []}
+                    futurePredictions={prediction ? [prediction.predictedPrice] : []}
+                    symbol={`${stockSymbol.toUpperCase()}.${selectedExchange}`}
+                    className="h-full"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-3">{selectedExchange} • Latest 100 trading days</p>
+              </div>
+            )}
+
+            {/* Secondary: analysis + disclaimer */}
+            {prediction && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
+                  <h3 className="text-sm font-semibold text-white mb-3">Price Movement</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 mb-0.5">Absolute</p>
+                      <p className={`font-mono font-semibold ${getTrendColor(prediction.trend)}`}>
+                        {prediction.change > 0 ? '+' : ''}₹{Math.abs(prediction.change).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 mb-0.5">Percent</p>
+                      <p className={`font-mono font-semibold ${getTrendColor(prediction.trend)}`}>
+                        {prediction.changePercent > 0 ? '+' : ''}{prediction.changePercent.toFixed(2)}%
+                      </p>
                     </div>
                   </div>
                 </div>
-                <StockChart 
-                  dates={stockData.map(d => d.date)}
-                  actualPrices={stockData.map(d => d.price)}
-                  predictedPrices={prediction ? (() => {
-                    const predictions = generateHistoricalPredictions(stockData);
-
-                    return predictions;
-                  })() : []}
-                  futureDates={prediction ? (() => {
-                    const nextDate = getNextTradingDay(stockData[stockData.length - 1].date);
-
-                    return [nextDate];
-                  })() : []}
-                  futurePredictions={prediction ? [prediction.predictedPrice] : []}
-                  symbol={`${stockSymbol.toUpperCase()}.${selectedExchange}`}
-                />
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Historical data from {selectedExchange} • Latest 100 trading days
-                </p>
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
+                  <h3 className="text-sm font-semibold text-white mb-3">Model</h3>
+                  <p className="text-xs text-gray-500">9-feature neural network (64→32→16→1). Data: {selectedExchange} with moving averages, momentum, volatility.</p>
+                </div>
               </div>
             )}
           </div>
