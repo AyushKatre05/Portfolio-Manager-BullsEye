@@ -70,8 +70,15 @@ public class SpringSecurityConfig {
                                 "/auth/**",
                                 "/api/stocks/search",
                                 "/api/stocks/profile",
-                                "/api/watchlist/**"
+                                "/api/watchlist/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess ->
