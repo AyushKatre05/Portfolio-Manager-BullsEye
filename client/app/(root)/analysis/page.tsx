@@ -10,7 +10,6 @@ export default function Analysis() {
   const [error, setError] = useState('');
   const [stockData, setStockData] = useState<StockData[]>([]);
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
-  const [selectedExchange, setSelectedExchange] = useState<'NSE' | 'BSE'>('NSE');
   const getNextTradingDay = (lastDate: string): string => {
     const date = new Date(lastDate);
     date.setDate(date.getDate() + 1);
@@ -46,7 +45,7 @@ export default function Analysis() {
     setStockData([]);
 
     try {
-      const symbol = `${stockSymbol.toUpperCase()}.${selectedExchange}`;
+      const symbol = stockSymbol.toUpperCase();
       const response = await fetch(`/api/stock?symbol=${symbol}`);
       const data = await response.json();
       
@@ -106,33 +105,6 @@ export default function Analysis() {
               </div>
             )}
             <div className={`flex flex-wrap items-center ${hasResults ? 'gap-4' : 'gap-6'}`}>
-              <div className="flex items-center gap-2">
-                <span className={`font-medium text-gray-500 uppercase tracking-wider ${hasResults ? 'text-xs' : 'text-sm'}`}>Exchange</span>
-                <div className="flex rounded overflow-hidden border border-[#30363d]">
-                  <button
-                    onClick={() => setSelectedExchange('NSE')}
-                    disabled={loading}
-                    className={`font-semibold transition-colors ${
-                      selectedExchange === 'NSE'
-                        ? 'bg-[#238636] text-white'
-                        : 'bg-[#21262d] text-gray-400 hover:bg-[#30363d]'
-                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${hasResults ? 'px-4 py-2.5 text-sm' : 'px-6 py-3.5 text-base'}`}
-                  >
-                    NSE
-                  </button>
-                  <button
-                    onClick={() => setSelectedExchange('BSE')}
-                    disabled={loading}
-                    className={`font-semibold transition-colors ${
-                      selectedExchange === 'BSE'
-                        ? 'bg-[#238636] text-white'
-                        : 'bg-[#21262d] text-gray-400 hover:bg-[#30363d]'
-                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${hasResults ? 'px-4 py-2.5 text-sm' : 'px-6 py-3.5 text-base'}`}
-                  >
-                    BSE
-                  </button>
-                </div>
-              </div>
               <div className={`flex-1 min-w-0 ${hasResults ? 'min-w-[200px] flex items-center gap-2' : 'w-full sm:min-w-[280px] flex items-center gap-3'}`}>
                 <input
                   id="stockSymbol"
@@ -145,7 +117,6 @@ export default function Analysis() {
                   style={{ letterSpacing: '0.05em' }}
                   disabled={loading}
                 />
-                <span className={`font-mono text-gray-500 ${hasResults ? 'text-sm' : 'text-base'}`}>.{selectedExchange}</span>
               </div>
               <button
                 onClick={handlePredict}
@@ -168,10 +139,7 @@ export default function Analysis() {
             </div>
             <div className={`flex flex-wrap items-center gap-2 ${hasResults ? 'mt-3' : 'mt-6 pt-6 border-t border-[#30363d]'}`}>
               <span className={`text-gray-500 ${hasResults ? 'text-xs' : 'text-sm'}`}>Quick select:</span>
-              {(selectedExchange === 'NSE'
-                ? ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK']
-                : ['RELIANCE', 'TCS', 'WIPRO', 'BHARTIARTL', 'MARUTI']
-              ).map((stock) => (
+              {['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'WIPRO', 'BHARTIARTL', 'MARUTI'].map((stock) => (
                 <button
                   key={stock}
                   onClick={() => setStockSymbol(stock)}
@@ -202,7 +170,7 @@ export default function Analysis() {
               <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#30363d] border-t-[#58a6ff]" />
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-white">Analyzing</h3>
-                <p className="text-sm text-gray-500 mt-1 font-mono">{stockSymbol}.{selectedExchange}</p>
+                <p className="text-sm text-gray-500 mt-1 font-mono">{stockSymbol}</p>
               </div>
             </div>
           </div>
@@ -218,7 +186,7 @@ export default function Analysis() {
                   <p className="text-3xl sm:text-4xl font-mono font-bold text-white tabular-nums">
                     ₹{prediction.currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1 font-mono">{stockSymbol}.{selectedExchange}</p>
+                  <p className="text-xs text-gray-500 mt-1 font-mono">{stockSymbol}</p>
                 </div>
                 <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Predicted Price</p>
@@ -259,7 +227,7 @@ export default function Analysis() {
               <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-white">Price Chart</h2>
-                  <span className="text-sm font-mono text-gray-500">{stockSymbol}.{selectedExchange}</span>
+                  <span className="text-sm font-mono text-gray-500">{stockSymbol}</span>
                 </div>
                 <div className="h-[420px] min-h-80 w-full">
                   <StockChart
@@ -268,11 +236,11 @@ export default function Analysis() {
                     predictedPrices={prediction ? generateHistoricalPredictions(stockData) : []}
                     futureDates={prediction ? [getNextTradingDay(stockData[stockData.length - 1].date)] : []}
                     futurePredictions={prediction ? [prediction.predictedPrice] : []}
-                    symbol={`${stockSymbol.toUpperCase()}.${selectedExchange}`}
+                    symbol={stockSymbol.toUpperCase()}
                     className="h-full"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-3">{selectedExchange} • Latest 100 trading days</p>
+                <p className="text-xs text-gray-500 mt-3">Latest 100 trading days</p>
               </div>
             )}
 
@@ -298,7 +266,7 @@ export default function Analysis() {
                 </div>
                 <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
                   <h3 className="text-sm font-semibold text-white mb-3">Model</h3>
-                  <p className="text-xs text-gray-500">9-feature neural network (64→32→16→1). Data: {selectedExchange} with moving averages, momentum, volatility.</p>
+                  <p className="text-xs text-gray-500">9-feature neural network (64→32→16→1). Data: any stock with moving averages, momentum, volatility.</p>
                 </div>
               </div>
             )}
